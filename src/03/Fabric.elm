@@ -148,26 +148,45 @@ firstWhere f list =
                 firstWhere f xs
 
 
-noPointsIn : Set Int -> Claim -> Bool
-noPointsIn cells claim =
-    let
-        pointsInClaim =
-            List.map flattenPoint (pointsWithin claim)
-    in
-    List.all (\x -> not <| Set.member x cells) pointsInClaim
+above : Claim -> Claim -> Bool
+above a b =
+    a.position.y > (b.position.y + b.length - 1) || b.position.y > (a.position.y + a.length - 1)
 
 
-findIsolatedClaim : List Claim -> Maybe Claim
-findIsolatedClaim claims =
+leftOf : Claim -> Claim -> Bool
+leftOf a b =
+    a.position.x > (b.position.x + b.width - 1) || b.position.x > (a.position.x + a.width - 1)
+
+
+doTheyOverlap : Claim -> Claim -> Bool
+doTheyOverlap a b =
     let
-        ( _, multipleOccupants ) =
-            buildCellOccupancies claims
+        sameClaim =
+            a.id == b.id
     in
-    firstWhere (noPointsIn multipleOccupants) claims
+    not (sameClaim || leftOf a b || above a b)
+
+
+polygon : List Claim -> (Claim -> Bool)
+polygon claims =
+    let
+        checks : List (Claim -> Bool)
+        checks =
+            List.map doTheyOverlap claims
+
+        apply : a -> (a -> b) -> b
+        apply a f =
+            f a
+    in
+    \claim ->
+        List.any (apply claim) checks
 
 
 partTwo : String -> Maybe Int
 partTwo input =
-    parse input
-        |> findIsolatedClaim
+    let
+        claims =
+            parse input
+    in
+    firstWhere (not << polygon claims) claims
         |> Maybe.map .id
