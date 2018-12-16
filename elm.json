@@ -4,7 +4,8 @@
         "src",
         "src/01",
         "src/02",
-        "src/03"
+        "src/03",
+        "src/05"
     ],
     "elm-version": "0.19.0",
     "dependencies": {
